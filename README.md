@@ -1,8 +1,9 @@
 # Vallo
 
 An original, responsive Vue 3 and Tailwind CSS 4 website concept for **vallo.io**.
-Instant agent sandbox virtual machines, real Kubernetes environments, block
-storage, and object storage, presented with a modern blue visual identity.
+Whole-environment seeds, independent agent sandbox virtual machines, Kubernetes,
+private copy-on-write data, shared project files, and object storage, presented
+with a modern blue visual identity.
 
 ## Run locally
 
@@ -27,22 +28,33 @@ No environment variables, credentials, or backend are required by the website.
 ## What's included
 
 - Responsive landing page with original vector illustrations and a Vallo mark.
-- Interactive sandbox demo with overview, Kubernetes, and storage resource views.
+- Interactive seed-to-fleet diagram: one immutable 5 TB seed, 1-50 independent
+  sandboxes, private changed blocks, and an automatically shared project folder.
+- Agent inspector with private files, Kubernetes, and shared-result views.
+- Exact illustrative storage comparison: 250 TB of full starting copies versus
+  a 5 TB seed plus fifty 10 GB private changes (5.5 TB of logical backing data).
 - Four illustrative machine sizes and a reactive hourly compute calculator.
 - Keyboard-accessible navigation, native FAQ disclosures, reduced-motion support.
 - Local fonts and assets, with no analytics, remote font requests, or signup collection.
-- Component tests covering demo lifecycle, all calculator sizes and bounds,
-  navigation, focus management, and required product content.
+- Component tests covering seed immutability, private-write isolation, shared
+  visibility, reset semantics, fleet bounds, storage arithmetic, calculator
+  sizes and bounds, navigation, focus management, and required product content.
 
 ## Demo boundary
 
-**This is a website, not a cloud platform implementation.** The launch control
-only updates browser state. Terminal output, capacities, and hourly rates are
+**This is a website, not a cloud platform implementation.** Demo controls
+only update browser state. Resource state, capacities, and hourly rates are
 explicitly illustrative. No CLI or API is implemented, no infrastructure is
 created, no payment is taken, and no information is submitted. Storage pricing,
 retention, cluster topology, and production billing terms remain undefined.
 The website is deployed at [https://vallo.io](https://vallo.io); this does not
 imply availability of an operational sandbox service.
+
+Unchanged blocks remain seed-backed; private writes do not alter the seed or
+another agent. Shared results are intentionally visible across the project and
+survive private resets. The storage arithmetic excludes shared/object data,
+replication, metadata, compression, and overhead: it is not a physical-usage or
+billing promise. Import time, I/O throughput, and startup time are not guaranteed.
 
 All calls to action lead to the working local demo or an existing page section,
 not to invented signup or documentation endpoints.
@@ -79,7 +91,8 @@ Each build runs the component tests and production compilation inside Docker.
 Publishing uses GitHub's built-in repository token; no custom registry secret
 is required in this repository.
 
-The approved delivery pipeline tracks the image digest in the deployment
-repository and reconciles it through Argo CD at [vallo.io](https://vallo.io).
-Automatic image delivery is being wired as part of the seed-to-fleet update;
-verification is required before that update is marked Implemented.
+The delivery pipeline is configured to track the image digest in the deployment
+repository and reconcile it through Argo CD at [vallo.io](https://vallo.io).
+Image tracking and automatic reconciliation are scoped to Vallo; pruning and
+self-healing remain disabled. Pause Vallo's image tracker before a manual
+rollback so it cannot overwrite a known-good digest pin.

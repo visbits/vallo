@@ -1,0 +1,111 @@
+import { describe, expect, it } from 'vitest'
+import { mount } from '@vue/test-utils'
+import SeedFleet from './SeedFleet.vue'
+
+const createDemo = () => mount(SeedFleet, { props: { machine: { cpu: 4, ram: 8 } } })
+const text = (wrapper, id) => wrapper.get(`[data-testid="${id}"]`).text()
+const selectView = (wrapper, index) => wrapper.findAll('.inspector-tabs button')[index].trigger('click')
+
+describe('seed-to-fleet simulation', () => {
+  it('starts with one immutable 5 TB seed backing 50 independent sandboxes', () => {
+    const wrapper = createDemo()
+    expect(text(wrapper, 'seed-capacity')).toBe('5 TB')
+    expect(text(wrapper, 'full-copies')).toBe('250 TB')
+    expect(text(wrapper, 'backing-data')).toBe('5 TB')
+    expect(wrapper.findAll('.agent-node')).toHaveLength(3)
+    expect(wrapper.text()).toContain('Automatically mounted in every sandbox')
+    expect(wrapper.text()).toContain('not physical usage or a storage bill')
+    expect(wrapper.get('#fleet-size').attributes()).toMatchObject({ min: '1', max: '50', step: '1' })
+  })
+
+  it('calculates the exact 5.5 TB example without multiplying the seed', async () => {
+    const wrapper = createDemo()
+    await wrapper.get('.fleet-run').trigger('click')
+    expect(text(wrapper, 'backing-data')).toBe('5.5 TB')
+    expect(text(wrapper, 'full-copies')).toBe('250 TB')
+    expect(text(wrapper, 'agent-changes')).toBe('10 GB changed')
+    expect(wrapper.get('.storage-equation').text()).toContain('500 GB changed blocks')
+    expect(text(wrapper, 'seed-capacity')).toBe('5 TB')
+  })
+
+  it('keeps private writes and resets isolated from the seed and other agents', async () => {
+    const wrapper = createDemo()
+    await wrapper.get('[aria-label="Inspect Agent 01"]').trigger('click')
+    expect(wrapper.get('.agent-inspector').attributes('open')).toBeDefined()
+    await wrapper.findAll('.inspector-actions button')[0].trigger('click')
+    await wrapper.get('#selected-agent').setValue(2)
+    expect(text(wrapper, 'agent-changes')).toBe('0 GB changed')
+    await wrapper.findAll('.inspector-actions button')[0].trigger('click')
+    expect(text(wrapper, 'backing-data')).toBe('5.02 TB')
+    await wrapper.findAll('.inspector-actions button')[1].trigger('click')
+    expect(text(wrapper, 'agent-changes')).toBe('0 GB changed')
+    await wrapper.get('#selected-agent').setValue(1)
+    expect(text(wrapper, 'agent-changes')).toBe('10 GB changed')
+    expect(text(wrapper, 'seed-capacity')).toBe('5 TB')
+  })
+
+  it('shares results across agents and preserves them through private resets', async () => {
+    const wrapper = createDemo()
+    await selectView(wrapper, 2)
+    await wrapper.get('.share-result').trigger('click')
+    expect(wrapper.findAll('.shared-inspector li')).toHaveLength(1)
+    await wrapper.get('#selected-agent').setValue(50)
+    expect(wrapper.get('.shared-inspector').text()).toContain('agent-01-result-1.json')
+    await wrapper.get('.share-result').trigger('click')
+    await selectView(wrapper, 0)
+    await wrapper.findAll('.inspector-actions button')[0].trigger('click')
+    await wrapper.findAll('.inspector-actions button')[1].trigger('click')
+    expect(text(wrapper, 'shared-count')).toContain('2 results')
+    await selectView(wrapper, 2)
+    expect(wrapper.findAll('.shared-inspector li').map((li) => li.text())).toEqual([
+      'agent-01-result-1.json', 'agent-50-result-2.json',
+    ])
+  })
+
+  it('handles 1, 2, and 50 sandboxes; removed private layers do not affect shared results', async () => {
+    const wrapper = createDemo()
+    await wrapper.get('.fleet-run').trigger('click')
+    await wrapper.get('#selected-agent').setValue(50)
+    await selectView(wrapper, 2)
+    await wrapper.get('.share-result').trigger('click')
+    await wrapper.get('#fleet-size').setValue(1)
+    expect(wrapper.get('#selected-agent').element.value).toBe('1')
+    expect(wrapper.findAll('.agent-node')).toHaveLength(1)
+    expect(text(wrapper, 'full-copies')).toBe('5 TB')
+    expect(text(wrapper, 'backing-data')).toBe('5.01 TB')
+    expect(text(wrapper, 'shared-count')).toContain('1 result')
+    await wrapper.get('#fleet-size').setValue(2)
+    expect(wrapper.findAll('.agent-node')).toHaveLength(2)
+    await wrapper.get('#selected-agent').setValue(2)
+    await selectView(wrapper, 0)
+    expect(text(wrapper, 'agent-changes')).toBe('0 GB changed')
+    await wrapper.get('#fleet-size').setValue(50)
+    expect(wrapper.get('#selected-agent').findAll('option')).toHaveLength(50)
+    expect(text(wrapper, 'backing-data')).toBe('5.01 TB')
+  })
+
+  it('clears all simulated data only with the entire-demo reset', async () => {
+    const wrapper = createDemo()
+    await wrapper.get('.fleet-run').trigger('click')
+    await selectView(wrapper, 2)
+    await wrapper.get('.share-result').trigger('click')
+    await wrapper.get('[aria-label="Reset entire demo"]').trigger('click')
+    expect(text(wrapper, 'backing-data')).toBe('5 TB')
+    expect(text(wrapper, 'shared-count')).toContain('0 results')
+    expect(text(wrapper, 'agent-changes')).toBe('0 GB changed')
+    expect(wrapper.findAll('.inspector-tabs button')[0].attributes('aria-pressed')).toBe('true')
+    await wrapper.get('#selected-agent').setValue(50)
+    expect(text(wrapper, 'agent-changes')).toBe('0 GB changed')
+  })
+
+  it('shows a selected agent’s Kubernetes stack without implying a live provisioning API', async () => {
+    const wrapper = createDemo()
+    await wrapper.get('#selected-agent').setValue(17)
+    expect(wrapper.find('[aria-label="Inspect Agent 17"]').exists()).toBe(true)
+    await selectView(wrapper, 1)
+    expect(wrapper.get('caption').text()).toBe('Illustrative stack for Agent 17')
+    expect(wrapper.findAll('tbody tr')).toHaveLength(3)
+    expect(wrapper.text()).toContain('Not a copy of live control-plane credentials')
+    expect(wrapper.text()).toContain('Browser-only simulation')
+  })
+})
