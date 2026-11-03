@@ -1,6 +1,6 @@
 # Vallo website
 
-Status: Approved
+Status: Implemented
 
 ## Product direction
 
@@ -89,6 +89,28 @@ operational identifiers belong in the deployment repository.
 - Verify the actual release path: source push, successful CI, image publication,
   automatic digest write-back, healthy rollout, and public HTTPS content.
 - Mark this specification Implemented only after these criteria pass.
+
+## Verification
+
+Verified on 2026-11-03 UTC:
+
+- All 12 component tests and the production build pass.
+- The rootless, read-only production container passes health, HTML, asset-cache,
+  missing-asset 404, and strict-CSP checks. Its interactive demo works without
+  application JavaScript or CSP errors.
+- Keyboard interactions and layouts were checked at widths 320, 390, 768,
+  1024, and 1440 pixels, including expanded agent views, without page overflow.
+- Release `b23ee7d` passed
+  [the publication workflow](https://github.com/visbits/vallo/actions/runs/41576629243).
+  Its image was automatically recorded by the image tracker and deployed by
+  Argo, without manually pinning the release digest.
+- Public HTTPS confirms the redesigned content, 5.5 TB example, shared-result
+  visibility, private reset isolation, Kubernetes view, and full-demo reset.
+  The deployment has two ready replicas and is Synced/Healthy.
+- The public edge injects an external analytics beacon that the unchanged CSP
+  blocks. This is not part of the website bundle; no analytics permission was
+  added. The external setting remains unchanged and is recorded separately
+  from successful application checks.
 
 ## Recovery
 
