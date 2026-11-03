@@ -1,9 +1,10 @@
 # Vallo
 
 An original, responsive Vue 3 and Tailwind CSS 4 website concept for **vallo.io**.
-Whole-environment seeds, independent agent sandbox virtual machines, Kubernetes,
-private copy-on-write data, shared project files, and object storage, presented
-with a modern blue visual identity.
+Complete, modular environments for development, research, and AI workflows:
+whole-environment seeds, independent agent machines, preloaded tools and skills,
+optional Kubernetes, private copy-on-write data, shared files, and object
+storage. Modern blue design, with compute billed hourly.
 
 ## Run locally
 
@@ -31,6 +32,10 @@ No environment variables, credentials, or backend are required by the website.
 - Interactive seed-to-fleet diagram: one immutable 5 TB seed, 1-50 independent
   sandboxes, private changed blocks, and an automatically shared project folder.
 - Agent inspector with private files, Kubernetes, and shared-result views.
+- Optional Kubernetes module, initially off. Enabling it illustrates a full
+  application/API/database/queue stack and kubectl preconfigured on every agent
+  machine in the environment. Agent tooling and environment-specific skills
+  are presented as preloaded regardless of the Kubernetes choice.
 - Exact illustrative storage comparison: 250 TB of full starting copies versus
   a 5 TB seed plus fifty 10 GB private changes (5.5 TB of logical backing data).
 - Four illustrative machine sizes and a reactive hourly compute calculator.

@@ -14,6 +14,12 @@ describe('Vallo website', () => {
     for (const text of ['vallo.io', 'Virtual machines', 'Kubernetes', 'Block storage', 'Object storage', 'Billed by the hour', 'Browser-only simulation', 'Shared project folder', 'Research Stack']) {
       expect(wrapper.text()).toContain(text)
     }
+    expect(wrapper.get('.hero-description').text()).toContain('Complete, modular environments for development, research, and AI workflows')
+    expect(wrapper.get('.compute-card').text()).toContain('Preload agent tooling and environment-specific skills')
+    expect(wrapper.get('.kubernetes-card').text()).toContain('Enable Kubernetes and rapidly deploy databases, queues, and supporting services')
+    expect(wrapper.get('.included-line').text()).toContain('Add Kubernetes when your workflow needs it')
+    expect(wrapper.text()).not.toContain('Every sandbox includes a Kubernetes environment')
+    expect(wrapper.text()).not.toContain('Kubernetes is part of every sandbox')
   })
 
   it('calculates each size at the minimum, default, and maximum runtimes', async () => {
@@ -28,6 +34,12 @@ describe('Vallo website', () => {
     }
     expect(wrapper.text()).toContain('Not a published price list')
     expect(wrapper.text()).toContain('one sandbox, not the fleet')
+    const estimate = wrapper.get('[data-testid="estimate"]').text()
+    await wrapper.get('#kube-enabled').setValue(true)
+    expect(wrapper.get('[data-testid="estimate"]').text()).toBe(estimate)
+    await wrapper.get('#kube-enabled').setValue(false)
+    expect(wrapper.get('[data-testid="estimate"]').text()).toBe(estimate)
+    expect(wrapper.get('.estimate-disclaimer').text()).toContain('Kubernetes and storage pricing')
   })
 
   it('opens mobile navigation and closes it when following a section link', async () => {
@@ -57,7 +69,7 @@ describe('Vallo website', () => {
       if (target !== '#') expect(wrapper.find(target).exists()).toBe(true)
     }
     const questions = wrapper.findAll('.faq-list details')
-    expect(questions).toHaveLength(8)
+    expect(questions).toHaveLength(10)
     for (const question of questions) {
       expect(question.find('summary').text().length).toBeGreaterThan(10)
       expect(question.find('p').text().length).toBeGreaterThan(30)

@@ -2,6 +2,48 @@
 
 Status: Implemented
 
+## Modular environment positioning update
+
+Status: Approved
+
+The existing seed-to-fleet release below is implemented. This amendment changes
+the marketing and browser demonstration, not the underlying cloud platform.
+The user requested this direction on 2026-11-02 and confirmed that Kubernetes is
+optional per sandbox environment and that agent tooling remains provider-neutral.
+Docmost documentation remains Not required.
+The user explicitly approved implementation and publication of this written
+scope on 2026-11-02.
+
+- Position Vallo as a complete, modular environment for development, research,
+  and AI workflows, rather than only a place to execute an agent.
+- Emphasize rapid environment assembly and application deployment, reusable
+  seeds, isolated experiments, shared results, and hourly compute billing.
+  Preserve the existing startup/I/O caveats and illustrative rates.
+- Describe preloaded agent tooling and environment-specific skills that help
+  agents use the environment. Do not invent named integrations or guarantees.
+- Kubernetes is an optional capability, not included unconditionally. When
+  enabled, all agent machines in that environment have kubectl preconfigured.
+  Explain the value of deploying databases, queues, and supporting services
+  alongside an application for realistic full-stack tests.
+- Add a clearly labeled environment-level Kubernetes checkbox to the demo,
+  initially off. Agent badges and the Kubernetes inspector reflect that choice.
+  The enabled illustration shows application, API, database, and queue workloads
+  plus kubectl readiness; the disabled view explains how to opt in.
+  Changing this option must not reset private data or shared results, alter the
+  example compute estimate, or claim real infrastructure was provisioned.
+  Data resets preserve the selected module configuration, like the fleet size.
+- Align hero, feature cards, workflow, pricing caveats, FAQ, page metadata,
+  README, and tests. Preserve the seed arithmetic and existing interactions.
+- Publish the approved website update through the existing automatic delivery
+  pipeline and update the workspace submodule pin. No CI, Kubernetes manifests,
+  credentials, Cloudflare settings, or other repositories' behavior changes.
+
+Acceptance: tests cover both Kubernetes states, preconfigured kubectl only when
+enabled, unchanged data and compute estimates, and required positioning.
+Production build and responsive browser checks pass; the automatic release is
+healthy and the public site displays the new messaging. Mark this amendment
+Implemented only after those checks pass.
+
 ## Product direction
 
 Vallo gives agents a complete starting environment, independent experiments,
@@ -9,8 +51,9 @@ and a common place to collaborate:
 
 - **Seed:** an immutable, versioned machine image, installed tools, private
   data volumes, and application stack definitions.
-- **Sandbox:** an independent writable clone of a seed, with a Kubernetes
-  environment for deploying and testing the stack.
+- **Sandbox:** an independent writable clone of a seed with preloaded agent
+  tooling and environment-specific skills. Kubernetes is optional; when
+  enabled, kubectl is preconfigured on every agent machine in the environment.
 - **Shared project folder:** a live filesystem automatically available to
   every sandbox in a project, outside the frozen seed and private write layers.
 - **Object storage:** a separate facility for datasets, artifacts, and outputs.
@@ -25,7 +68,7 @@ documentation in Docmost was explicitly marked Not required.
 
 Replace the generic terminal hero with a seed-to-fleet illustration showing
 one frozen 5 TB environment branching into 1-50 private writable sandboxes.
-Show Kubernetes inside each sandbox and the shared project folder connecting
+Show the selected Kubernetes capability and the shared project folder connecting
 the entire fleet. The original Vallo visual identity remains blue and modern.
 
 Visitors can:

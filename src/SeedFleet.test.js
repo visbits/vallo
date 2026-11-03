@@ -16,6 +16,8 @@ describe('seed-to-fleet simulation', () => {
     expect(wrapper.text()).toContain('Automatically mounted in every sandbox')
     expect(wrapper.text()).toContain('not physical usage or a storage bill')
     expect(wrapper.get('#fleet-size').attributes()).toMatchObject({ min: '1', max: '50', step: '1' })
+    expect(wrapper.get('#kube-enabled').element.checked).toBe(false)
+    expect(wrapper.text()).toContain('Agent tooling + skills preloaded')
   })
 
   it('calculates the exact 5.5 TB example without multiplying the seed', async () => {
@@ -86,6 +88,7 @@ describe('seed-to-fleet simulation', () => {
 
   it('clears all simulated data only with the entire-demo reset', async () => {
     const wrapper = createDemo()
+    await wrapper.get('#kube-enabled').setValue(true)
     await wrapper.get('.fleet-run').trigger('click')
     await selectView(wrapper, 2)
     await wrapper.get('.share-result').trigger('click')
@@ -94,18 +97,54 @@ describe('seed-to-fleet simulation', () => {
     expect(text(wrapper, 'shared-count')).toContain('0 results')
     expect(text(wrapper, 'agent-changes')).toBe('0 GB changed')
     expect(wrapper.findAll('.inspector-tabs button')[0].attributes('aria-pressed')).toBe('true')
+    expect(wrapper.get('#kube-enabled').element.checked).toBe(true)
     await wrapper.get('#selected-agent').setValue(50)
     expect(text(wrapper, 'agent-changes')).toBe('0 GB changed')
   })
 
   it('shows a selected agent’s Kubernetes stack without implying a live provisioning API', async () => {
     const wrapper = createDemo()
+    await wrapper.get('#kube-enabled').setValue(true)
     await wrapper.get('#selected-agent').setValue(17)
     expect(wrapper.find('[aria-label="Inspect Agent 17"]').exists()).toBe(true)
     await selectView(wrapper, 1)
     expect(wrapper.get('caption').text()).toBe('Illustrative stack for Agent 17')
-    expect(wrapper.findAll('tbody tr')).toHaveLength(3)
+    expect(wrapper.findAll('tbody tr td:first-child').map((cell) => cell.text())).toEqual(['web', 'api', 'database', 'queue'])
+    expect(wrapper.get('.kubectl-ready').text()).toBe('kubectl preconfigured on every agent machine.')
     expect(wrapper.text()).toContain('Not a copy of live control-plane credentials')
     expect(wrapper.text()).toContain('Browser-only simulation')
+  })
+
+  it('offers Kubernetes as an optional environment module and removes its readiness claims when off', async () => {
+    const wrapper = createDemo()
+    await selectView(wrapper, 1)
+    expect(wrapper.get('.kube-inspector').text()).toContain('Kubernetes is not enabled')
+    expect(wrapper.find('table').exists()).toBe(false)
+    expect(wrapper.text()).not.toContain('kubectl preconfigured')
+    expect(wrapper.findAll('.agent-kube').every((badge) => badge.text() === 'Kube off')).toBe(true)
+    await wrapper.get('#kube-enabled').setValue(true)
+    expect(wrapper.findAll('.agent-kube').every((badge) => badge.text() === 'Kubernetes')).toBe(true)
+    expect(wrapper.find('table').exists()).toBe(true)
+    await wrapper.get('#selected-agent').setValue(50)
+    expect(wrapper.get('caption').text()).toBe('Illustrative stack for Agent 50')
+    await wrapper.get('#kube-enabled').setValue(false)
+    expect(wrapper.find('table').exists()).toBe(false)
+    expect(wrapper.text()).not.toContain('kubectl preconfigured')
+    expect(wrapper.get('#selected-agent').element.value).toBe('50')
+  })
+
+  it('preserves the seed, private changes, and shared results when changing modules', async () => {
+    const wrapper = createDemo()
+    await wrapper.get('.fleet-run').trigger('click')
+    await selectView(wrapper, 2)
+    await wrapper.get('.share-result').trigger('click')
+    for (const enabled of [true, false, true]) {
+      await wrapper.get('#kube-enabled').setValue(enabled)
+      expect(text(wrapper, 'backing-data')).toBe('5.5 TB')
+      expect(text(wrapper, 'seed-capacity')).toBe('5 TB')
+      expect(wrapper.get('.shared-inspector').text()).toContain('agent-01-result-1.json')
+    }
+    await selectView(wrapper, 0)
+    expect(text(wrapper, 'agent-changes')).toBe('10 GB changed')
   })
 })

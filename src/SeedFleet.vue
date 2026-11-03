@@ -11,6 +11,7 @@ const privateChanges = ref(Array(50).fill(0))
 const sharedResults = ref([])
 const activeView = ref('Private files')
 const inspectorOpen = ref(false)
+const kubeEnabled = ref(false)
 const announcement = ref('Explore a 5 TB seed and 50 independent sandboxes.')
 const totalChanges = computed(() => privateChanges.value.slice(0, fleetSize.value).reduce((sum, value) => sum + value, 0))
 const backingTB = computed(() => formatTB(seedGB + totalChanges.value))
@@ -32,6 +33,13 @@ function changePrivateFiles() {
   privateChanges.value[selectedAgent.value - 1] += 10
   announcement.value = `${agentName(selectedAgent.value)} changed 10 GB privately. The seed and other agents are unchanged.`
 }
+
+// Module selection changes the illustration, not the seed or simulated user data.
+watch(kubeEnabled, (enabled) => {
+  announcement.value = enabled
+    ? 'Kubernetes enabled for this environment. kubectl is preconfigured on every agent machine.'
+    : 'Kubernetes disabled for this environment. Private files and shared results are unchanged.'
+})
 
 function inspectAgent(id) {
   selectedAgent.value = id
@@ -69,8 +77,14 @@ function resetDemo() {
     <div class="fleet-diagram">
       <div class="seed-source">
         <div class="seed-source-icon"><HardDrive :size="25" /></div>
-        <div class="seed-source-copy"><div><strong>Research Stack</strong><span>SEED · V1</span></div><p>Machine image · tools · private data · stack definitions</p></div>
+        <div class="seed-source-copy"><div><strong>Research Stack</strong><span>SEED · V1</span></div><p>Machine image · tools + skills · private data · stack definitions</p></div>
         <div class="seed-capacity"><strong data-testid="seed-capacity">5 TB</strong><span><LockKeyhole :size="10" /> FROZEN</span></div>
+      </div>
+      <div class="environment-modules">
+        <p><Sparkles :size="14" /><strong>Agent tooling + skills preloaded</strong></p>
+        <span>Environment-specific guidance. Less setup for every agent.</span>
+        <label for="kube-enabled"><input id="kube-enabled" v-model="kubeEnabled" type="checkbox" aria-describedby="kube-option-description" /> Enable Kubernetes <small>OPTIONAL</small></label>
+        <p id="kube-option-description">{{ kubeEnabled ? 'kubectl preconfigured on every agent machine.' : 'Add databases, queues, and services for full-stack tests.' }}</p>
       </div>
       <div class="branch-label"><span></span><GitBranch :size="13" /> Share unchanged blocks. Branch independently.<span></span></div>
       <div class="sandbox-branches" :class="{ single: visibleAgents.length === 1, double: visibleAgents.length === 2 }">
@@ -78,7 +92,7 @@ function resetDemo() {
           <span class="agent-node-title"><span class="agent-light"></span>{{ agentName(agent) }}<Check v-if="selectedAgent === agent" :size="12" /></span>
           <span class="agent-data"><HardDrive :size="13" /> Full 5 TB dataset</span>
           <span class="agent-private">+{{ privateChanges[agent - 1] }} GB private</span>
-          <span class="agent-kube"><ShipWheel :size="13" /> Kubernetes</span>
+          <span class="agent-kube"><ShipWheel :size="13" /> {{ kubeEnabled ? 'Kubernetes' : 'Kube off' }}</span>
         </button>
       </div>
       <p v-if="fleetSize > visibleAgents.length" class="fleet-more">Showing {{ visibleAgents.length }} of {{ fleetSize }} independent sandboxes. Inspect any agent below.</p>
@@ -115,9 +129,16 @@ function resetDemo() {
           <p>Other agents keep their own files. A private reset never deletes shared results.</p>
         </div>
         <div v-else-if="activeView === 'Kubernetes'" class="kube-inspector">
-          <div><ShipWheel :size="19" /><span>Your seeded stack. Its own Kubernetes environment.</span></div>
-          <table><caption>Illustrative stack for {{ agentName(selectedAgent) }}</caption><thead><tr><th>Workload</th><th>Ready</th><th>Status</th></tr></thead><tbody><tr v-for="workload in ['web', 'api', 'worker']" :key="workload"><td>{{ workload }}</td><td>1/1</td><td><span class="workload-ready">Running</span></td></tr></tbody></table>
-          <p>Fresh cluster identity, seeded stack definitions. Not a copy of live control-plane credentials.</p>
+          <template v-if="kubeEnabled">
+            <div><ShipWheel :size="19" /><span>A full stack for realistic application tests.</span></div>
+            <p class="kubectl-ready">kubectl preconfigured on every agent machine.</p>
+            <table><caption>Illustrative stack for {{ agentName(selectedAgent) }}</caption><thead><tr><th>Workload</th><th>Ready</th><th>Status</th></tr></thead><tbody><tr v-for="workload in ['web', 'api', 'database', 'queue']" :key="workload"><td>{{ workload }}</td><td>1/1</td><td><span class="workload-ready">Running</span></td></tr></tbody></table>
+            <p>Fresh cluster identity, seeded stack definitions. Not a copy of live control-plane credentials.</p>
+          </template>
+          <template v-else>
+            <div><ShipWheel :size="19" /><span>Kubernetes is not enabled.</span></div>
+            <p>Select “Enable Kubernetes” above to add the full-stack illustration. Your agent tools, skills, private data, and shared project folder are available either way.</p>
+          </template>
         </div>
         <div v-else class="shared-inspector">
           <p>The same project folder, whether you're {{ agentName(selectedAgent) }} or any other agent.</p>
@@ -139,6 +160,10 @@ function resetDemo() {
 .fleet-topline { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 13px 18px; background: #f8faff; border-bottom: 1px solid #e5edf8; }
 .fleet-topline > span:first-child { display: flex; gap: 7px; align-items: center; font: 8px var(--font-mono); letter-spacing: .7px; color: #6780a7; }
 .fleet-diagram { padding: 22px 20px 18px; background: radial-gradient(ellipse at top, #edf4ff, #fff 75%); }
+.environment-modules { margin-top: 14px; padding: 12px; border: 1px solid #dce7fa; border-radius: 7px; background: #f7faff; color: #536d92; font-size: 9px; }
+.environment-modules > p:first-child { display: flex; align-items: center; gap: 6px; color: #355f9f; }.environment-modules > span { display: block; margin-top: 5px; line-height: 1.6; }
+.environment-modules label { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; min-height: 36px; margin-top: 6px; cursor: pointer; font-size: 11px; font-weight: 600; }.environment-modules input { width: 16px; height: 16px; accent-color: #235cf5; }.environment-modules small { font-size: 7px; color: #7088ab; letter-spacing: .5px; }
+#kube-option-description { line-height: 1.7; }.kube-inspector .kubectl-ready { color: #168569; font-weight: 600; }
 .seed-source { display: flex; gap: 11px; align-items: center; border: 1px solid #9cbdfb; border-radius: 9px; padding: 16px 13px; background: linear-gradient(115deg, #2864f7, #194bd0); color: #fff; box-shadow: 0 5px 14px #235cf524; }
 .seed-source-icon { display: grid; place-items: center; width: 39px; height: 43px; background: #ffffff16; border: 1px solid #ffffff30; border-radius: 8px; flex-shrink: 0; }
 .seed-source-copy { flex: 1; min-width: 0; }.seed-source-copy > div { display: flex; gap: 9px; align-items: center; flex-wrap: wrap; }.seed-source-copy strong { font-size: 13px; font-weight: 650; }.seed-source-copy > div > span { font-size: 7px; letter-spacing: .7px; color: #c9dcff; }.seed-source-copy p { font-size: 8px; line-height: 1.7; color: #d7e5ff; margin-top: 5px; }
