@@ -61,6 +61,10 @@ survive private resets. The storage arithmetic excludes shared/object data,
 replication, metadata, compression, and overhead: it is not a physical-usage or
 billing promise. Import time, I/O throughput, and startup time are not guaranteed.
 
+Changing the Kubernetes module preserves simulated private data and shared
+results. It does not change the VM-only compute estimate; Kubernetes pricing is
+not defined by this demo. Data resets preserve the selected module configuration.
+
 All calls to action lead to the working local demo or an existing page section,
 not to invented signup or documentation endpoints.
 

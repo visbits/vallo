@@ -4,7 +4,7 @@ Status: Implemented
 
 ## Modular environment positioning update
 
-Status: Approved
+Status: Implemented
 
 The existing seed-to-fleet release below is implemented. This amendment changes
 the marketing and browser demonstration, not the underlying cloud platform.
@@ -43,6 +43,20 @@ enabled, unchanged data and compute estimates, and required positioning.
 Production build and responsive browser checks pass; the automatic release is
 healthy and the public site displays the new messaging. Mark this amendment
 Implemented only after those checks pass.
+
+Verified 2026-11-03 UTC:
+
+- All 14 component tests and the production build pass, including both module
+  states, conditional kubectl readiness, preserved data, and unchanged compute.
+- Keyboard controls and responsive layouts pass from 320 to 1440 pixels.
+  Public browser checks confirm both Kubernetes states, the four illustrated
+  workloads, shared/private data preservation, the new copy, and page metadata.
+- Release `284b485` passed
+  [the publication workflow](https://github.com/visbits/vallo/actions/runs/41578431588)
+  and was automatically deployed without a manual digest update or sync.
+  Argo is Synced/Healthy, both replicas are Ready, and public HTTPS/health pass.
+- The previously recorded external analytics CSP warning remains unchanged.
+  No infrastructure configuration or backend provisioning was added.
 
 ## Product direction
 
@@ -133,7 +147,7 @@ operational identifiers belong in the deployment repository.
   automatic digest write-back, healthy rollout, and public HTTPS content.
 - Mark this specification Implemented only after these criteria pass.
 
-## Verification
+## Seed-to-fleet release verification
 
 Verified on 2026-11-03 UTC:
 
