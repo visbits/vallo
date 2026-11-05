@@ -10,11 +10,12 @@ afterEach(() => {
 describe('Vallo website', () => {
   it('presents the brand and required product capabilities with a demo boundary', () => {
     const wrapper = mount(App)
-    expect(wrapper.find('h1').text()).toContain('Your entire')
+    expect(wrapper.find('h1').text()).toContain('From repos')
     for (const text of ['vallo.io', 'Virtual machines', 'Kubernetes', 'Block storage', 'Object storage', 'Billed by the hour', 'Browser-only simulation', 'Shared project folder', 'Research Stack']) {
       expect(wrapper.text()).toContain(text)
     }
-    expect(wrapper.get('.hero-description').text()).toContain('Complete, modular environments for development, research, and AI workflows')
+    expect(wrapper.get('.hero-description').text()).toContain('Turn your code, dependencies, and deployment knowledge into a blueprint')
+    expect(wrapper.get('.concept-notice').text()).toContain('All workflows and results below are simulated')
     expect(wrapper.get('.compute-card').text()).toContain('Preload agent tooling and environment-specific skills')
     expect(wrapper.get('.kubernetes-card').text()).toContain('Enable Kubernetes and rapidly deploy databases, queues, and supporting services')
     expect(wrapper.get('.included-line').text()).toContain('Add Kubernetes when your workflow needs it')
@@ -52,12 +53,15 @@ describe('Vallo website', () => {
     expect(wrapper.find('#mobile-nav').exists()).toBe(false)
   })
 
-  it('moves CTA focus to the fleet-size control', async () => {
+  it('routes controller and seed CTAs to their respective controls', async () => {
     const scroll = vi.fn()
     const wrapper = mount(App, { attachTo: document.body })
+    wrapper.get('#controller-demo').element.scrollIntoView = scroll
     wrapper.get('#sandbox-demo').element.scrollIntoView = scroll
     await wrapper.get('.hero-actions button').trigger('click')
     expect(scroll).toHaveBeenCalledWith({ block: 'center' })
+    expect(document.activeElement.id).toBe('blueprint-entry')
+    await wrapper.get('.estimate-card button').trigger('click')
     expect(document.activeElement.id).toBe('fleet-size')
     wrapper.unmount()
   })
@@ -69,7 +73,7 @@ describe('Vallo website', () => {
       if (target !== '#') expect(wrapper.find(target).exists()).toBe(true)
     }
     const questions = wrapper.findAll('.faq-list details')
-    expect(questions).toHaveLength(10)
+    expect(questions).toHaveLength(13)
     for (const question of questions) {
       expect(question.find('summary').text().length).toBeGreaterThan(10)
       expect(question.find('p').text().length).toBeGreaterThan(30)

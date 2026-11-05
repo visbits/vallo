@@ -1,5 +1,13 @@
 # Vallo
 
+## Controller concept preview
+
+The website explores agent-assisted or direct blueprint
+execution: compose infrastructure, deploy, test, review evidence, and replay a
+saved release. All identifiers and results are illustrative; the seed demo and
+compute calculator remain available below it. Run locally using the commands
+below. This is a product concept, not a working orchestration service.
+
 An original, responsive Vue 3 and Tailwind CSS 4 website concept for **vallo.io**.
 Complete, modular environments for development, research, and AI workflows:
 whole-environment seeds, independent agent machines, preloaded tools and skills,

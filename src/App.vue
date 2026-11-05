@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref } from 'vue'
 import SeedFleet from './SeedFleet.vue'
+import BlueprintDemo from './BlueprintDemo.vue'
 import {
   ArrowDown, ArrowRight, Box, Check, ChevronDown, Clock3,
   Code2, Cpu, Database, FolderOpen, GitBranch, HardDrive, Layers3,
@@ -19,6 +20,9 @@ const sizes = [
 const selected = computed(() => sizes.find((size) => size.id === selectedSize.value))
 const estimate = computed(() => (selected.value.rate * Number(hours.value)).toFixed(2))
 const faqs = [
+  { question: 'Do I need to use Vallo’s agent?', answer: 'The proposed controller has two entry points: bring repositories for agent-assisted blueprint creation, or invoke a saved blueprint or execution profile from your existing agent or CI. Both use the same execution lifecycle and evidence model. These integrations are illustrated here, not connected to live services.' },
+  { question: 'What makes a blueprint replayable?', answer: 'A release record stored in object storage pins repository commits, image digests, deployment definitions, and seed versions. Replay checks that those artifacts are still available. It recreates a deployment formula, not historical database contents or process memory. Rollback requires separate data and migration compatibility checks.' },
+  { question: 'Can an agent diagnose and fix a failed run?', answer: 'The proposed workflow collects test output and runtime evidence before optional agent analysis. Customers can choose reports, diagnosis, or an approved repair branch and PR. A suggested cause is not a proven diagnosis, and permission to open a PR is not permission to merge or deploy. The example on this page is entirely scripted.' },
   { question: 'What goes into a seed?', answer: 'A seed is a frozen, versioned starting environment: a machine image, installed tools, environment-specific skills, private data volumes, and application stack definitions. Prepare it once, then give each agent an independent writable sandbox. Updating a seed means a new version, not changing existing sandboxes underneath them.' },
   { question: 'Does a 5 TB seed need 250 TB for 50 agents?', answer: 'Not fifty complete copies of the starting dataset. Copy-on-write clones share unchanged seed blocks and keep private changed blocks separately. A 5 TB seed plus 10 GB of private changes in each of 50 sandboxes illustrates 5.5 TB of logical backing data. Actual physical usage and billing depend on other factors, including replication and metadata. Shared files and object storage are separate.' },
   { question: 'Can one agent change another agent’s files?', answer: 'Not through its private cloned disk. Each sandbox has its own writable layer, so private changes do not alter the seed or other sandboxes. The automatically mounted shared project folder is different: files written there are visible to other agents in the project. This is not one ordinary writable block device attached to fifty machines.' },
@@ -32,6 +36,12 @@ const faqs = [
 ]
 
 function jumpToDemo() {
+  menuOpen.value = false
+  document.getElementById('controller-demo')?.scrollIntoView({ block: 'center' })
+  document.getElementById('blueprint-entry')?.focus({ preventScroll: true })
+}
+
+function jumpToSeed() {
   menuOpen.value = false
   document.getElementById('sandbox-demo')?.scrollIntoView({ block: 'center' })
   document.getElementById('fleet-size')?.focus({ preventScroll: true })
@@ -64,22 +74,23 @@ function jumpToDemo() {
   </header>
 
   <main id="main">
+    <div class="concept-notice">PRODUCT DIRECTION PREVIEW <span>Explore the proposed controller. All workflows and results below are simulated.</span></div>
     <section class="hero">
       <div class="hero-glow" aria-hidden="true"></div>
       <div class="page-width hero-grid">
         <div class="hero-copy">
-          <div class="eyebrow-pill"><span class="blue-dot"></span> COMPLETE ENVIRONMENTS. READY FOR AGENTS. <ArrowRight :size="13" /></div>
-          <h1>Your entire<br />environment.<br /><span class="build-word">Every agent<svg viewBox="0 0 280 18" aria-hidden="true"><path d="M3 12C71 1 198 1 273 10M25 16c89-7 158-7 224-3" /></svg></span><span class="text-blue-600">.</span></h1>
-          <p class="hero-description">Complete, modular environments for development, research, and AI workflows. Start with your tools, terabytes of data, and preloaded agent skills. Enable a full Kubernetes stack to deploy databases and services, test real applications, and move from idea to experiment—billed hourly.</p>
+          <div class="eyebrow-pill"><span class="blue-dot"></span> YOUR STACK. A REPEATABLE FORMULA. <ArrowRight :size="13" /></div>
+          <h1>From repos<br />to running.<br /><span class="build-word">Repeatably<svg viewBox="0 0 280 18" aria-hidden="true"><path d="M3 12C71 1 198 1 273 10M25 16c89-7 158-7 224-3" /></svg></span><span class="text-blue-600">.</span></h1>
+          <p class="hero-description">Turn your code, dependencies, and deployment knowledge into a blueprint. Let an agent compose the infrastructure—or bring your own agent. Deploy the whole stack, test it, and keep the formula for next time.</p>
           <div class="hero-actions flex flex-wrap gap-3">
-            <button class="button button-blue" @click="jumpToDemo">Branch your first seed <GitBranch :size="17" /></button>
-            <a href="#platform" class="button button-white">See how it works <ArrowDown :size="16" /></a>
+            <button class="button button-blue" @click="jumpToDemo">Explore the controller <GitBranch :size="17" /></button>
+            <a href="#how-it-works" class="button button-white">Follow a branch push <ArrowDown :size="16" /></a>
           </div>
           <div class="hero-checks"><span><Check :size="14" /> Your tools &amp; data</span><span><Check :size="14" /> Independent clones</span><span><Check :size="14" /> Billed by the hour</span></div>
-          <div class="hero-promise"><span>01 SEED</span><GitBranch :size="19" /><span>50 DIRECTIONS</span><p>Fork the starting point.<br /><strong>Share only what belongs together.</strong></p></div>
+          <div class="hero-promise"><span>20 REPOS</span><GitBranch :size="19" /><span>ONE BLUEPRINT</span><p>Agents compose. The controller executes.<br /><strong>Every run leaves evidence.</strong></p></div>
         </div>
 
-        <SeedFleet id="sandbox-demo" :machine="selected" />
+        <BlueprintDemo id="controller-demo" />
       </div>
       <div class="page-width capability-strip">
         <span>THE WHOLE STACK.<br /><strong>ONE PLACE TO BUILD.</strong></span>
@@ -89,8 +100,8 @@ function jumpToDemo() {
 
     <section id="platform" class="section page-width">
       <div class="section-heading flex flex-col justify-between gap-5 md:flex-row md:items-end">
-        <div><p class="eyebrow">SAME STARTING POINT. DIFFERENT POSSIBILITIES.</p><h2>Bring 5 TB. Start 50 experiments.<br />Don't copy it 50 times.</h2></div>
-        <p class="section-intro">Less repeated setup. More parallel progress.<br />Real application stacks. Reproducible research.<br />AI workflows with room to do real work.</p>
+        <div><p class="eyebrow">COMPOSABLE INFRASTRUCTURE, NOT ANOTHER SETUP SCRIPT.</p><h2>The whole environment.<br />Not just somewhere to run code.</h2></div>
+        <p class="section-intro">Complete, modular environments for development, research, and AI workflows. Reusable components. Optional Kubernetes. VM workers when you need them.</p>
       </div>
       <div class="feature-grid">
         <article class="feature-card compute-card">
@@ -121,13 +132,26 @@ function jumpToDemo() {
 
     <section id="how-it-works" class="workflow-section">
       <div class="page-width section">
-        <div class="section-heading text-center"><p class="eyebrow">ASSEMBLE → DEPLOY → EXPERIMENT</p><h2>One setup. A fleet of possibilities.</h2><p class="mt-4 text-slate-500">Build the environment your work needs. Give every team and agent the same head start.</p></div>
+        <div class="section-heading text-center"><p class="eyebrow">PUSH → DEPLOY → TEST → UNDERSTAND</p><h2>A branch push.<br />The whole stack, put to the test.</h2><p class="mt-4 text-slate-500">One proposed workflow. From a code change to a result your team can act on.</p></div>
         <div class="steps-grid">
-          <article><span class="step-number">01 <span></span></span><HardDrive class="step-icon" /><h3>Assemble your environment.</h3><p>Bring your data and stack definitions. Preload tools and environment-specific skills. Save a trusted seed instead of rebuilding setup for every task.</p></article>
-          <article><span class="step-number">02 <span></span></span><GitBranch class="step-icon" /><h3>Choose what you need.</h3><p>Pick a VM size and branch independent clones. Enable Kubernetes when you need databases and services; kubectl comes preconfigured on all agent machines.</p></article>
-          <article><span class="step-number">03 <span></span></span><FolderOpen class="step-icon" /><h3>Build. Research. Share.</h3><p>Test your app, explore your data, or run an AI workflow. Keep private changes isolated and publish results to the shared project folder. Compute is billed hourly.</p></article>
+          <article><span class="step-number">01 <span></span></span><GitBranch class="step-icon" /><h3>Resolve the formula.</h3><p>Pin the changed commit and every dependency to a saved integration baseline. Reuse your Helm charts, Terraform, and build scripts instead of starting over.</p></article>
+          <article><span class="step-number">02 <span></span></span><ShipWheel class="step-icon" /><h3>Deploy. Then prove it.</h3><p>Compose your app, database, queue, and test workers. Wait for readiness, run integration checks, and collect evidence—not just a green deployment status.</p></article>
+          <article><span class="step-number">03 <span></span></span><Code2 class="step-icon" /><h3>Understand what changed.</h3><p>Return results to GitHub or Slack. Optionally ask an agent to explain the failure and propose a repair PR. Your policy decides what happens next.</p></article>
         </div>
-        <p class="workflow-caveat">Copy-on-write avoids full starting-data copies. Initial imports, storage I/O, and application startup still take time.</p>
+        <p class="workflow-caveat">Planned integrations, illustrated in your browser. No repositories are accessed, messages sent, or pull requests created.</p>
+      </div>
+    </section>
+
+    <section class="section page-width controller-principles" aria-label="Controller design principles">
+      <article><span class="eyebrow">REPLAYABLE BY DESIGN</span><h3>Keep the recipe.<br />Not just the result.</h3><p>Object-stored release records capture exact commits, image digests, and seed versions. Select a past formula, check its dependencies, and reproduce the environment.</p><small>Software replay is not database rollback.</small></article>
+      <article><span class="eyebrow">YOUR AGENT, YOUR BOUNDARY</span><h3>Keep the coordinator.<br />Borrow the workers.</h3><p>Keep decisions and sensitive state on your infrastructure. Dispatch bounded jobs to isolated workers, with queues, budgets, evidence, and explicit cleanup.</p><small>Persistent coordination. Disposable execution.</small></article>
+      <article><span class="eyebrow">PRIVATE SRE · FUTURE DIRECTION</span><h3>More understanding.<br />Less data movement.</h3><p>A proposed private, GPU-hosted diagnostic service with fixed-price plans. Analyze evidence inside a defined privacy boundary, even if large investigations take longer.</p><small>Privacy terms, capacity, and pricing are not yet defined.</small></article>
+    </section>
+
+    <section class="seed-section">
+      <div class="page-width section seed-showcase">
+        <div class="section-heading"><p class="eyebrow">THE DATA BEHIND THE BLUEPRINT</p><h2>Bring 5 TB.<br />Start 50 experiments.<br />Keep one starting point.</h2><p class="hero-description">Blueprints describe the stack. Seeds carry its starting data and tools. Give every worker a private copy-on-write layer, with shared project files for the results that belong together.</p><p class="workflow-caveat">Illustrative logical storage, not a physical-usage or pricing promise. Imports, I/O, and application startup still take time.</p></div>
+        <SeedFleet id="sandbox-demo" :machine="selected" />
       </div>
     </section>
 
@@ -153,7 +177,7 @@ function jumpToDemo() {
           <div class="estimate-total"><span>Example total</span><output aria-live="polite" data-testid="estimate">${{ estimate }}</output></div>
           <p class="estimate-detail">{{ selected.name }} · ${{ selected.rate.toFixed(2) }}/hr × {{ hours }} hr</p>
           <p class="estimate-disclaimer">Illustrative VM compute only. Kubernetes and storage pricing, taxes, and final billing terms are not included.</p>
-          <button class="button button-blue w-full" @click="jumpToDemo">Try this size in the demo <ArrowRight :size="16" /></button>
+          <button class="button button-blue w-full" @click="jumpToSeed">Try this size in the seed demo <ArrowRight :size="16" /></button>
         </aside>
       </div>
     </section>
@@ -166,7 +190,7 @@ function jumpToDemo() {
     <section class="page-width cta-wrapper">
       <div class="final-cta">
         <div class="cta-orbits" aria-hidden="true"><span></span><span></span><span></span></div>
-        <div class="relative"><p class="eyebrow">MORE THAN A PLACE TO RUN CODE.</p><h2>The same head start.<br />Fifty different directions.</h2><p>Development. Research. AI workflows. Your complete environment, billed hourly.</p><button class="button button-white" @click="jumpToDemo">Explore the seed-to-fleet demo <ArrowRight :size="17" /></button><span class="cta-note">Interactive demo. No account needed.</span></div>
+        <div class="relative"><p class="eyebrow">ONE FORMULA. EVERY NEXT RUN.</p><h2>Compose it once.<br />Build on it again.</h2><p>Your repositories. Your agent. A repeatable path to a working stack.</p><button class="button button-white" @click="jumpToDemo">Explore the controller concept <ArrowRight :size="17" /></button><span class="cta-note">Interactive demo. No account needed.</span></div>
         <svg class="cta-mark" viewBox="0 0 40 36" aria-hidden="true"><path d="M2 4h10l13 28H15L2 4Zm25 0h11L24 32l-5-11L27 4Z" fill="currentColor" /></svg>
       </div>
     </section>
