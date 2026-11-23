@@ -76,7 +76,9 @@ not defined by this demo. Data resets preserve the selected module configuration
 All calls to action lead to the working local demo or an existing page section,
 not to invented signup or documentation endpoints.
 
-See [the website specification](docs/WEBSITE.md) for scope and acceptance criteria.
+See [the website specification](docs/WEBSITE.md) for scope, acceptance criteria,
+and business concepts, and [the prototype design](docs/PROTOTYPE.md) for how the
+product would work.
 
 ## Dependency checks
 
